@@ -15,17 +15,28 @@ cluster = Cluster(['ec2-52-43-50-72.us-west-2.compute.amazonaws.com'])
 session = cluster.connect('stackoverflow')
 
 @app.route('/')
-@app.route('/index')
-def index():
-       user = { 'nickname': 'Miguel' }  
+@app.route('/api/<userid>/')
+def getuserprofile(userid):
        stmt = "SELECT * FROM trendingtags"
+       stmt1 = " Select * from userprofile where 'Id' ='"+ str(userid) + "' ;"
+       stmt2 = " Select * from favoritevotes where 'UserId'= '"+ str(userid) + "' ;"
        response = session.execute(stmt)
+       response1 = session.execute(stmt1)
+       response2 = session.execute(stmt2)	
+       user = { 'nickname': response2.DisplayName }
        tag_list = []
        tag_count = []
+       user_profile = []
+       favorite_votes = []
        for val in response:
-          tag_list.append(val.tagtitle)
-	  tag_count.append(val.total)	
-       return render_template("index.html", title='Trending Tags',user=user,tag_list = tag_list,tag_count=tag_count)
+          tag_list.append(val.TagName)
+	  tag_count.append(val.Count)
+       for val in response1:
+	  user_profile.append(val)
+       for val in response2:
+          favorite_votes.append(val)
+       jsonresponse1 = [{"username": x.DisplayName,"reputation":x.Reputation,"upvotes":x.UpVotes,"downvotes":x.DownVotes} for x in user_profile]  	
+       return render_template("index.html", title='User Profile',user=user,favorite_votes=favorite_votes,tag_list = tag_list,tag_count=tag_count,user_profile=jsonify(users=jsonresponse1))
 
 @app.route('/api/')
 def get_trendingtags():

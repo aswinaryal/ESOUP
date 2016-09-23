@@ -4,18 +4,22 @@
 </head>
 <body>
    {% if user %}
-   <h1>Hello, {{user.nickname}}!</h1>
+   <h1>Hello, {{user}}!</h1>
    {% else %}
    <h1>Hello, Insight Fellow!</h1>
    {% endif %}
    <br />
+"index.html", title='User Profile',user=user,favorite_votes=favorite_votes,tag_list = tag_list,tag_count=tag_count,user_profile,user_profile
+<div class="userprofile" align="center">
+
+</div>
+<div class="trendingtags" align="right">
+<h3>Trending Tags</h3>
    <ul>
    {% for num in tag_list %}
       <li>{{num}}</li>
    {% endfor %}
- {% for num in tag_count %}
-      <li>{{num}}</li>
-   {% endfor %}
    </ul>
+</div>
 </body>
 </html>

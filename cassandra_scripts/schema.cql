@@ -18,3 +18,8 @@ CREATE TABLE IF NOT EXISTS toptagsforuser(
 UserId int,DisplayName text, Reputation int, Upvotes int, Downvotes int, tagname text, cnt int
 PRIMARY KEY (UserId)
 );
+
+CREATE TABLE IF NOT EXISTS tagsofuser(
+"UserId" int, "TagName" text, "Total" int
+PRIMARY KEY (UserId)
+);
