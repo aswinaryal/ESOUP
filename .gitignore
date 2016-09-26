@@ -5,6 +5,7 @@
 *.json
 *.csv
 *.log
+metastore_db/*
 project/*
 stackoverflow.com-Posts.7z
 stackoverflow.com-Tags.7z
