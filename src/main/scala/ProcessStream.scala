@@ -43,19 +43,19 @@ def main(args: Array[String]){
    
 	directKafkaStream.print()
 	directKafkaStream.foreachRDD{ rdd =>
-	if (rdd.toLocalIterator.nonEmpty) {
-        sqlContext.jsonRDD(rdd).registerTempTable("realtimeposts")
-	  val x =  sqlContext.sql( "SELECT tags,link,title,is_answered FROM realtimeposts").map(RealTimePosts(_)).saveToCassandra("stackoverflow","realtimeposts")
+sqlContext.jsonRDD(rdd).registerTempTable("realtimeposts")
+      
+if (rdd.toLocalIterator.nonEmpty) {
+//        sqlContext.jsonRDD(rdd).registerTempTable("realtimeposts")
+	 sqlContext.sql( "SELECT tags,link,title,is_answered FROM realtimeposts").map(RealTimePosts(_)).saveToCassandra("stackoverflow","realtimeposts")
 //x.toDF().write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "realtimeposts", "keyspace" -> "stackoverflow")).mode(SaveMode.Append).save()
  
 //val temp = rdd.map(_.split(" ",-1)).map(n=>RealTimePosts(n(0),n(1))).toDF()
 //temp.registerTempTable("posts")
 //val postsdf = sqlContext.sql( "SELECT * FROM posts").write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "realtimeposts", "keyspace" -> "stackoverflow")).mode(SaveMode.Append).save()
 
-     }
+    }
 }
-
-
       ssc.start()
       ssc.awaitTermination()
    }

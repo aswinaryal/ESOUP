@@ -4,6 +4,7 @@
 *.xml
 *.json
 *.csv
+*.log
 project/*
 stackoverflow.com-Posts.7z
 stackoverflow.com-Tags.7z

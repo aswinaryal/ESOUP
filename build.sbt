@@ -10,7 +10,8 @@ libraryDependencies ++= Seq(
  "com.databricks" %% "spark-csv" % "1.5.0",
  "com.datastax.spark" %% "spark-cassandra-connector" % "1.6.1",
 "org.apache.spark" %% "spark-streaming" % "1.6.1",
-"org.apache.spark" %% "spark-streaming-kafka" % "1.6.1"
+"org.apache.spark" %% "spark-streaming-kafka" % "1.6.1",
+"org.apache.spark" %% "spark-hive" % "1.6.1"
 )
 assemblyMergeStrategy in assembly := {
  case PathList("META-INF", xs @ _*) => MergeStrategy.discard

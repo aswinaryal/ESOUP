@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>User Dashboard</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>   
+
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Stack Overflow</a>
+    </div>
+</div>
+</nav>
+
+<div class="container">
+  {% for val in user %}
+<h3>Hello, {{val.DisplayName}} !! </h3>
+
+</div>
+         
+            <h4>Reputation - {{val.Reputation}}</h4>
+<h4>UpVotes - {{val.UpVotes}}</h4>
+<h4>DownVotes - {{val.DownVotes}}</h4>
+            
+            
+         {% endfor %}
+      
+   </body>
+</html>

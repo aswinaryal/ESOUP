@@ -4,7 +4,7 @@ import org.apache.spark.SparkContext._
 import org.apache.spark.SparkConf
 import com.databricks.spark.csv
 import org.apache.spark.sql.{Row,SaveMode}
-import org.apache.spark.sql.functions.{rank,desc,explode}
+import org.apache.spark.sql.functions.{rank,desc,explode,dense_rank}
 import org.apache.spark.sql.expressions.Window
 import com.datastax.spark.connector._ 
 import com.datastax.spark.connector.{SomeColumns, _}
@@ -12,16 +12,17 @@ import scala.xml.XML
 
 object Program{
 
-case class Post(Id: String,PostTypeId: String,ParentId: String,AcceptedAnswerId: String,CreationDate: String,Score: String,ViewCount: String,OwnerUserId: String,LastEditorUserId: String,LastEditorDisplayName: String,LastEditDate: String,LastActivityDate: String,Tags: String,AnswerCount: String,CommentCount: String,FavoriteCount: String,CommunityOwnedDate: String,OwnerDisplayName: String)
+case class Post(id: String,PostTypeId: String,ParentId: String,AcceptedAnswerId: String,CreationDate: String,Score: String,ViewCount: String,owneruserid: String,LastEditorUserId: String,LastEditorDisplayName: String,LastEditDate: String,LastActivityDate: String,Tags: String,AnswerCount: String,CommentCount: String,FavoriteCount: String,CommunityOwnedDate: String,OwnerDisplayName: String)
 
-case class User(Id: String,Reputation: String, Location: String, CreationDate: String, DisplayName: String, LastAccessDate: String, Views: String, UpVotes: String, DownVotes: String, AccountId: String, WebsiteUrl: String, Age: String)
+case class User(id: String,Reputation: String, Location: String, CreationDate: String, DisplayName: String, LastAccessDate: String, Views: String, UpVotes: String, DownVotes: String, AccountId: String, WebsiteUrl: String, Age: String)
 
-case class Vote(Id: String,PostId: String, VoteTypeId: String,UserId: String, CreationDate: String, BountyAmount: String)
+case class Vote(id: String,PostId: String, VoteTypeId: String,userid: String, CreationDate: String, BountyAmount: String)
 
 case class Expertise(UserId: String, TagName: String)
 
 case class Tag(UserId: String, domain:Array[String])
 
+case class TagCount(UserId:String, TagName:String, Total:Int)
 case class TrendingTags(tag:Array[String])
 
 case class FinalTags(tag: String, number: Int)
@@ -33,7 +34,7 @@ def main(args: Array[String]){
 val conf = new SparkConf(true).set("spark.cassandra.connection.host","ip-172-31-1-106").set("spark.cassandra.auth.username", "cassandra").set("spark.cassandra.auth.password", "cassandra")
 
 val sc = new SparkContext("spark://ec2-52-43-50-72.us-west-2.compute.amazonaws.com:7077","stackoverflow",conf)
-val sqlContext = new SQLContext(sc)
+val sqlContext = new org.apache.spark.sql.hive.HiveContext(sc)
 
 import sqlContext.implicits._
 
@@ -61,8 +62,6 @@ val removepostsextralines = sc.textFile("hdfs://ec2-52-43-50-72.us-west-2.comput
 
 val postsfilebeforeremovinglines = sc.textFile("hdfs://ec2-52-43-50-72.us-west-2.compute.amazonaws.com:9000/Input/Posts.xml")
 
-postsfilebeforeremovinglines.count()
-
 val postsfileafterremovinglines = postsfilebeforeremovinglines.subtract(removepostsextralines)
 
 val post = postsfileafterremovinglines.map(r=>{
@@ -75,7 +74,7 @@ post.printSchema()
 post.show(10)
 post.registerTempTable("post")
 
-val toptags = sqlContext.sql("SELECT p.OwnerUserId,d.Tags from post p JOIN (SELECT * from post where AcceptedAnswerId is not null) d ON d.AcceptedAnswerId = p.Id where p.CreationDate is not null and p.Id is not null and p.OwnerUserId is not null  group by p.OwnerUserId,d.Tags").map(r=> {
+val toptags = sqlContext.sql("SELECT p.owneruserid,d.Tags from post p JOIN (SELECT * from post where AcceptedAnswerId is not null) d ON d.AcceptedAnswerId = p.id where p.CreationDate is not null and p.id is not null and p.owneruserid is not null  and year(p.CreationDate)=year(current_date()) group by p.owneruserid,d.Tags").map(r=> {
 val domainparsed = r(1).toString().replace("""><""","\",\"").replace("""<""","\"").replace(""">""","\"").split(",")
 Tag(r(0).toString(),domainparsed)})
 
@@ -90,7 +89,17 @@ x.registerTempTable("Expertise")
 
 val tagsofuser = sqlContext.sql("select UserId, TagName, Count(*) Total from Expertise where UserId is not null and UserId!='' group by UserId, TagName order by Total desc")
 
-tagsofuser.show(25)
+import org.apache.spark.sql.expressions.Window
+val overTotal = Window.partitionBy('UserId).orderBy('Total.desc)
+
+val ranked = tagsofuser.withColumn("rank", dense_rank.over(overTotal))
+
+//ranked.show
+
+val finaltoptags = ranked.where('total>=10).where('rank <= 3)
+
+finaltoptags.show(25)
+
 //tagsofuser.write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "tagsofuser", "keyspace" -> "stackoverflow")).mode(SaveMode.Append).save()
 
 val removeusersextralines = sc.textFile("hdfs://ec2-52-43-50-72.us-west-2.compute.amazonaws.com:9000/stackoverflow/usersfileextra.txt")
@@ -107,10 +116,10 @@ id}).map(_.split(",",-1)).map(u=>User(u(0),u(1),u(2),u(3),u(4),u(5),u(6),u(7),u(
 user.show(5)
 user.registerTempTable("user")
 
-val userprofile = sqlContext.sql("Select Id, DisplayName,DownVotes,Reputation, UpVotes from user")
+val userprofile = sqlContext.sql("Select id, DisplayName,DownVotes,Reputation, UpVotes from user")
 userprofile.printSchema()
 //userprofile.rdd.saveToCassandra("stackoverflow","userprofile",SomeColumns("Id","DisplayName","Reputation","UpVotes","DownVotes"))
-userprofile.write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "userprofile", "keyspace" -> "stackoverflow")).mode(SaveMode.Append).save()
+//userprofile.write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "userprofile", "keyspace" -> "stackoverflow")).mode(SaveMode.Append).save()
 
 //val toptagsforuser = sqlContext.sql(" SELECT UserId, TagName, Count(*) Total from Expertise where UserId is NOT NULL group by UserId, TagName HAVING Total>=5 order by Total desc")
 
@@ -128,9 +137,7 @@ val removevotesextralines = sc.textFile("hdfs://ec2-52-43-50-72.us-west-2.comput
 
 val votesfilebeforeremovinglines = sc.textFile("hdfs://ec2-52-43-50-72.us-west-2.compute.amazonaws.com:9000/Input/Votes.xml")
 
-votesfilebeforeremovinglines.count()
-
-val votesfileafterremovinglines = usersfilebeforeremovinglines.subtract(removeusersextralines)
+val votesfileafterremovinglines = votesfilebeforeremovinglines.subtract(removevotesextralines)
 
 val vote = votesfileafterremovinglines.map(r=>{
 val elements =scala.xml.XML.loadString(r)
@@ -139,9 +146,16 @@ id}).map(_.split(",",-1)).map(v=>Vote(v(0),v(1),v(2),v(3),v(4),v(5))).toDF()
 
 vote.registerTempTable("vote")
 
-val favoritevotes = sqlContext.sql("SELECT OwnerUserId, Count(*) Numberofusers from post p JOIN vote v on v.PostId = p.Id where v.VoteTypeId=5 group by OwnerUserId") 
+
+val favoritevotes = sqlContext.sql("SELECT owneruserid, Count(*) numberofusers from post p JOIN vote v on v.PostId = p.id where v.VoteTypeId='5' group by owneruserid") 
 favoritevotes.show(20)
 favoritevotes.write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "favoritevotes", "keyspace" -> "stackoverflow")).mode(SaveMode.Append).save()
 //favoritevotes.rdd.saveAsTextFile("hdfs://ec2-52-43-50-72.us-west-2.compute.amazonaws.com:9000/favoritevotes/")
+
+val unansweredquestionswithbounty = sqlContext.sql("Select count(*) from vote where VoteTypeId='8'")
+
+//val unansweredcountfortag = sqlContext.sql(Select p.id,p.Tags from post Join vote on p.id = v.PostId where v.VoteTypeId='8' and p.PostTypeId='1' and (p.AcceptedAnswerId=null or p.AcceptedAnswerId= ' ')) 
+//unansweredquestionswithbounty.write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "questionscountwithbounty", "keyspace" -> "stackoverflow")).mode(SaveMode.Append).save()
+
 }
 }
