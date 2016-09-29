@@ -50,40 +50,52 @@ if (rdd.toLocalIterator.nonEmpty) {
 //        sqlContext.jsonRDD(rdd).registerTempTable("realtimeposts")
 val tagsofquestion = sqlContext.sql("Select title,tags,is_answered,link from realtimeposts")
 val tagquestion = tagsofquestion.select("title","tags","is_answered").withColumn("tag",explode($"tags"))
-tagquestion.printSchema()
-tagquestion.show()
 tagquestion.registerTempTable("tagquestion")
-val tags = sqlContext.sql("select tags from realtimeposts").map(x=>List(x(0)))
-//sqlContext.sql( "SELECT tags,link,title,is_answered FROM realtimeposts").map(RealTimePosts(_)).saveToCassandra("stackoverflow","realtimeposts")
+val tags = sqlContext.sql("select tags from realtimeposts").withColumn("tag",explode($"tags")).select("tag")
+val tagcount = tags.map(x=>(x(0).toString,1)).reduceByKey(_+_).toDF()
+tagcount.show()
+val newtagcount =tagcount.select($"_1".alias("TagName"),$"_2".alias("Count"))
+newtagcount.show()
+val trendingtagsfromdb = sqlContext.read.format("org.apache.spark.sql.cassandra").options(Map("table" -> "trendingtags", "keyspace" -> "stackoverflow")).load
+trendingtagsfromdb.show()
+val updatedtagcount = trendingtagsfromdb.unionAll(newtagcount)
+//.map(x=>(x(0).toString,x(1).toString)).toDF()
+//.reduceByKey(_+_).toDF()
+updatedtagcount.printSchema()
+updatedtagcount.show()
+
+sqlContext.sql( "SELECT tags,link,title,is_answered FROM realtimeposts").map(RealTimePosts(_)).saveToCassandra("stackoverflow","realtimeposts")
 //x.toDF().write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "realtimeposts", "keyspace" -> "stackoverflow")).mode(SaveMode.Append).save()
 
-/** val tagarray = tagquestion.select("tag").map(x=>{
-val users = ssc.cassandraTable("stackoverflow","tagtousers").select("users","tag").where("tag=?",x(0).toString())
-users
-}).map(x=>(x.getString(0),x.getString(1))).toDF()
-tagarray.printSchema()
-tagarray.show()
-*/
 val df = sqlContext.read.format("org.apache.spark.sql.cassandra").options(Map("table" -> "tagtousers", "keyspace" -> "stackoverflow")).load
-df.printSchema()
-df.show
 val tagtosingleuser = df.withColumn("user",explode($"users"))
-tagtosingleuser.printSchema()
-tagtosingleuser.show()
 tagtosingleuser.registerTempTable("tagtousers")
 val fin = sqlContext.sql("select user,title from tagquestion r Join tagtousers t on r.tag = t.tag where is_answered!=true")
-fin.printSchema()
-fin.show()
 val finremove = sqlContext.sql("select user,title from tagquestion r Join tagtousers t on r.tag = t.tag where is_answered =true")
-finremove.show()
-fin.map(x=>(x(0).toString,List(x(1).toString))).reduceByKey(_ ++ _).saveToCassandra("stackoverflow","usertoquestion",SomeColumns("userid","questions" append)) 
-finremove.map(x=>(x(0).toString,List(x(1).toString))).reduceByKey(_ ++ _).saveToCassandra("stackoverflow","usertoquestion",SomeColumns("userid","questions" remove))
+fin.map(x=>(x(0).toString,Set(x(1).toString))).reduceByKey(_ ++ _).saveToCassandra("stackoverflow","usertoquestion",SomeColumns("userid","questions" append)) 
+finremove.map(x=>(x(0).toString,Set(x(1).toString))).reduceByKey(_ ++ _).saveToCassandra("stackoverflow","usertoquestion",SomeColumns("userid","questions" remove))
 //val temp = rdd.map(_.split(" ",-1)).map(n=>RealTimePosts(n(0),n(1))).toDF()
 //temp.registerTempTable("posts")
 //val postsdf = sqlContext.sql( "SELECT * FROM posts").write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "realtimeposts", "keyspace" -> "stackoverflow")).mode(SaveMode.Append).save()
-
-    }
 }
+}
+/**
+val  topics= List("votes").toSet
+val directKafkaStream = KafkaUtils.createDirectStream[String,String,StringDecoder,StringDecoder](ssc,kafkabrokers,topics).map(_._2)
+
+        directKafkaStream.print()
+        directKafkaStream.foreachRDD{ rdd =>
+sqlContext.jsonRDD(rdd).registerTempTable("votes")
+
+if (rdd.toLocalIterator.nonEmpty) {
+val votes=sqlContext.sql("select UserId,VoteTypeId,Count(*) cnt from votes group by UserId,VoteTypeId order by VoteTypeId")
+votes.printSchema()
+votes.registerTempTable("votes")
+val df = sqlContext.read.format("org.apache.spark.sql.cassandra").options(Map("table" -> "userprofile", "keyspace" -> "stackoverflow")).load
+
+}
+}
+*/
       ssc.start()
       ssc.awaitTermination()
    }

@@ -150,7 +150,7 @@ vote.registerTempTable("vote")
 
 val favoritevotes = sqlContext.sql("SELECT owneruserid, p.id, Count(*) numberofusers from post p JOIN vote v on v.PostId = p.id where v.VoteTypeId='5' group by owneruserid,p.id") 
 favoritevotes.show(20)
-favoritevotes.write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "favoritevotes", "keyspace" -> "stackoverflow")).mode(SaveMode.Append).save()
+//favoritevotes.write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "favoritevotes", "keyspace" -> "stackoverflow")).mode(SaveMode.Append).save()
 //favoritevotes.rdd.saveAsTextFile("hdfs://ec2-52-43-50-72.us-west-2.compute.amazonaws.com:9000/favoritevotes/")
 
 val unansweredquestionswithbounty = sqlContext.sql("Select count(*) from vote where VoteTypeId='8'")
