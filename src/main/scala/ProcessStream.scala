@@ -58,6 +58,7 @@ val newtagcount =tagcount.select($"_1".alias("TagName"),$"_2".alias("Count"))
 newtagcount.show()
 val trendingtagsfromdb = sqlContext.read.format("org.apache.spark.sql.cassandra").options(Map("table" -> "trendingtags", "keyspace" -> "stackoverflow")).load
 trendingtagsfromdb.show()
+
 val updatedtagcount = trendingtagsfromdb.unionAll(newtagcount)
 //.map(x=>(x(0).toString,x(1).toString)).toDF()
 //.reduceByKey(_+_).toDF()
