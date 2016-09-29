@@ -1,35 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>User Dashboard</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
   <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="../static/css/style.css">
 </head>
-<body>   
 
-<nav class="navbar navbar-inverse">
-  <div class="container-fluid">
+<body id="myPage" data-spy="scroll"  data-offset="30">
+<nav class="navbar navbar-fixed-top navbar-custom" role="navigation">
+  <div class="container header">
     <div class="navbar-header">
-      <a class="navbar-brand" href="#">Stack Overflow</a>
-    </div>
+      <a class="navbar-brand" href="#"><h1>Stack Overflow</h1></a>
+</div>
 </div>
 </nav>
-
-<div class="container">
+<br><br>
+<br>
+<br>
+<br>
+<div class="username">
   {% for val in user %}
-<h3>Hello, {{val.DisplayName}} !! </h3>
+<h2>Hello, {{val.DisplayName}} !! </h2>
 
 </div>
-         
-            <h4>Reputation - {{val.Reputation}}</h4>
-<h4>UpVotes - {{val.UpVotes}}</h4>
-<h4>DownVotes - {{val.DownVotes}}</h4>
-            
-            
-         {% endfor %}
-      
+   <br>
+<br>
+<div class="row">
+<div class="col-sm-2 col-md-2 col-lg-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
+<a href="#"><h3>UpVotes </h3><span class="badge">{{val.UpVotes}}</span></a><br>
+<a href="#"><h3>DownVotes </h3><span class="badge">{{val.DownVotes}}</span></a>
+</div>
+<div class="col-sm-2 col-md-2 col-lg-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
+<a href="#"><h3>Reputation </h3><span class="badge">{{val.Reputation}}</span></a><br>
+<a href="#"><h3>Favorite Votes </h3><span class="badge">12</span></a>
+{% endfor %}
+</div>
+<div class="col-sm-4 col-md-4 col-lg-4 col-sm-offset-2 col-md-offset-2 col-lg-offset-2">
+<h3><b>Top Tags</b></h3>
+{% for num in toptags %}
+      {% for x in num %}
+<li><h4>{{x}}</h4></li>
+{% endfor %}
+</li>
+   {% endfor %}
+</div>
+</div>
+<div class="row">
+<div class="col-md-6 col-md-offset-1 col-lg-6 col-md-offset-1">
+<h3><b> Recommended Questions</b></h3>
+{% for q in questions %}
+{% for n in q %}
+<li><h4>{{n}}<h4></li>
+{% endfor %}
+{% endfor %}
+</div>
+<div class = "col-md-4 col-md-offset-1 col-lg-4 col-lg-offset-1">
+<h3><b>Trending Tags</b></h3>
+{% for tag in trendingtags %}
+<li><h4>{{tag.tagname}}</h4></li>
+{% endfor %}
+</div>
+</div>
+  </div>
    </body>
 </html>
