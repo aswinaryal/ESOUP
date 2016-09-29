@@ -9,11 +9,13 @@ def main():
    jsonFile = open("realdata.json", 'r')
    count = 0
  
-   while True:
-     for line in jsonFile:
-        producer.send('stackoverflow', line)
-        count = count + 1 
-        print ("sent New Post"+line)
+  # while True:
+   for line in jsonFile:
+      producer.send('stackoverflow', line)
+      count = count + 1 
+      print ("sent New Post"+line)
+      if count>30:
+         break
 
 if __name__ == "__main__":
    main()
