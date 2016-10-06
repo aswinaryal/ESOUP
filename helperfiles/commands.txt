@@ -1,0 +1,6 @@
+//assemble and compile
+sudo sbt assembly
+sudo sbt package
+
+//command to run spark/spark streaming
+spark-submit --packages com.databricks:spark-csv_2.10:1.5.0,datastax:spark-cassandra-connector:1.6.1-s_2.10,org.apache.spark:spark-streaming-kafka_2.10:1.6.1 --class ProcessStream --master spark://<ip-address>:7077 --executor-memory  5G  --jars target/scala-2.10/<assembly-jar> target/scala-2.10/<sourcecode-jar>
