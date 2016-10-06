@@ -59,13 +59,10 @@ val tagcount = tags.map(x=>(x(0).toString,1)).reduceByKey(_+_).toDF()
 val newtagcount =tagcount.select($"_1".alias("tagname"),$"_2".alias("count"))
 
 val trendingtagsfromdb = sqlContext.read.format("org.apache.spark.sql.cassandra").options(Map("table" -> "trendingtags", "keyspace" -> "stackoverflow")).load
-trendingtagsfromdb.show()
+
 val deldate = trendingtagsfromdb.select(trendingtagsfromdb("tagname"),trendingtagsfromdb("count"))
-deldate.show()
 val sortresult = deldate.unionAll(newtagcount).map(x=>(x.getString(0),x.getInt(1))).reduceByKey(_+_).toDF()
-sortresult.show()
 val trending = sortresult.select($"_1".alias("tagname"),$"_2".alias("count")).withColumn("updatedon",current_timestamp())
-trending.show()
 trending.write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "trendingtags", "keyspace" -> "stackoverflow")).mode(SaveMode.Overwrite).save()
 
 val df = sqlContext.read.format("org.apache.spark.sql.cassandra").options(Map("table" -> "tagtousers", "keyspace" -> "stackoverflow")).load
@@ -95,21 +92,11 @@ if (rdd.toLocalIterator.nonEmpty) {
 val upvotes=sqlContext.sql("select id,sum(upvotes) as upvotes from upvotes group by id")
 upvotes.show()
 val realtimeupvotesfromdb = sqlContext.read.format("org.apache.spark.sql.cassandra").options(Map("table" -> "realtimeupvotes", "keyspace" -> "stackoverflow")).load
-realtimeupvotesfromdb.show()
 import org.apache.spark.sql._
 val unionupvotes = upvotes.unionAll(realtimeupvotesfromdb).map(x=>(x(0).toString,x.getAs[Long](1))).reduceByKey(_ + _)
 unionupvotes.toDF("id","upvotes").show()
-/**
-val updatevotes = unionvotes.map(v=>{
-val split = v(1).toString().split(",")
-val downvotes = split(0)
-val upvotes = v(1).split(",")(1)
-RealTimeVotes(v(0).toString(),downvotes,upvotes)
-})
-*/
-//updatesvotes.toDF("id","downvotes","upvotes").show()
+
 unionupvotes.saveToCassandra("stackoverflow","realtimeupvotes",SomeColumns("id","upvotes"))
-//votes.write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "realtimevotes", "keyspace" -> "stackoverflow")).mode(SaveMode.Overwrite).save()
 }
 }
 
@@ -122,9 +109,7 @@ sqlContext.jsonRDD(rdd).registerTempTable("downvotes")
 
 if (rdd.toLocalIterator.nonEmpty) {
 val downvotes=sqlContext.sql("select id,sum(downvotes) as downvotes from downvotes group by id")
-downvotes.show()
 val realtimedownvotesfromdb = sqlContext.read.format("org.apache.spark.sql.cassandra").options(Map("table" -> "realtimedownvotes", "keyspace" -> "stackoverflow")).load
-realtimedownvotesfromdb.show()
 import org.apache.spark.sql._
 val uniondownvotes = downvotes.unionAll(realtimedownvotesfromdb).map(x=>(x(0).toString,x.getAs[Long](1))).reduceByKey(_ + _)
 uniondownvotes.toDF("id","downvotes").show()

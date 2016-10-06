@@ -22,11 +22,6 @@ case class Expertise(UserId: String, TagName: String)
 
 case class Tag(UserId: String, domain:Array[String])
 
-//case class TagCount(UserId:String, TagName:String, Total:Int)
-//case class TrendingTags(tag:Array[String])
-
-//case class FinalTags(tag: String, number: Int)
-
 case class TagsFile(id:String, TagName:String,Count:Int, ExcerptPostId:String, WikiPostId:String)
 
 def main(args: Array[String]){
@@ -50,11 +45,8 @@ tagsfile.registerTempTable("tags")
 
 val tag_count = sqlContext.sql("SELECT CURRENT_TIMESTAMP as updatedon,count,tagname from tags order by count desc limit 10")
 
-tag_count.printSchema()
-tag_count.show()
-//tag_count.rdd.saveToCassandra("stackoverflow","trendingtags",SomeColumns("tagname","count"))
 tag_count.write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "trendingtags", "keyspace" -> "stackoverflow")).mode(SaveMode.Append).save()
-/**
+
 val removepostsextralines = sc.textFile("hdfs://ec2-52-24-206-90.us-west-2.compute.amazonaws.com:9000/input/postsfileextra.txt")
 val postsfilebeforeremovinglines = sc.textFile("hdfs://ec2-52-24-206-90.us-west-2.compute.amazonaws.com:9000/input/Posts.xml")
 val postsfileafterremovinglines = postsfilebeforeremovinglines.subtract(removepostsextralines)
@@ -66,8 +58,7 @@ id
 }).map(_.split(",",-1)).map(p=>Post(p(0),p(1),p(2),p(3),p(4),p(5),p(6),p(7),p(8),p(9),p(10),p(11),p(12),p(13),p(14),p(15),p(16),p(17))).toDF()
 
 post.registerTempTable("post")
-*/
-/**
+
 val toptags = sqlContext.sql("SELECT p.owneruserid,d.Tags from post p JOIN (SELECT * from post where AcceptedAnswerId is not null) d ON d.AcceptedAnswerId = p.id where p.CreationDate is not null and p.id is not null and p.owneruserid is not null  and months_between(current_timestamp(),p.CreationDate)<13 group by p.owneruserid,d.Tags,p.CreationDate").map(r=> {
 val domainparsed = r(1).toString().replace("""><""",",").replace("""<""","").replace(""">""","").split(",")
 Tag(r(0).toString(),domainparsed)})
@@ -75,8 +66,6 @@ Tag(r(0).toString(),domainparsed)})
 val q = toptags.toDF("UserId","domain")
 
 val x = q.withColumn("TagName",explode($"domain"))
-
-//x.printSchema()
 
 x.registerTempTable("Expertise")
 
@@ -87,8 +76,6 @@ val overTotal = Window.partitionBy('UserId).orderBy('Total.desc)
 
 val ranked = tagsofuser.withColumn("rank", dense_rank.over(overTotal))
 
-//ranked.show
-
 val finaltoptags = ranked.where('total>=10).where('rank <= 3)
 
 val tagtousertotag = finaltoptags.select(finaltoptags("UserId"),finaltoptags("TagName"))
@@ -96,8 +83,6 @@ val tagtousertotag = finaltoptags.select(finaltoptags("UserId"),finaltoptags("Ta
 tagtousertotag.persist()
 tagtousertotag.map(x=>(x(0).toString,List(x(1).toString))).reduceByKey(_ ++ _).saveToCassandra("stackoverflow","toptags",SomeColumns("userid","tags"))
 tagtousertotag.map(x=>(x(1).toString,List(x(0).toString))).reduceByKey(_ ++ _).saveToCassandra("stackoverflow","tagtousers",SomeColumns("tag","users"))
-
-//tagtousertotag.map(x=>(x(0).toString,List(x(1).toString))).reduceByKey(_ ++ _).saveToCassandra("stackoverflow","toptags",SomeColumns("userid","tags"))
 
 //finaltoptags.select(finaltoptags("UserId"),finaltoptags("TagName")).map(x=>(x(1).toString,List(x(0).toString))).reduceByKey(_ ++ _).saveToCassandra("stackoverflow","tagtousers",SomeColumns("tag","users"))
 
@@ -115,9 +100,8 @@ id}).map(_.split(",",-1)).map(u=>User(u(0),u(1),u(2),u(3),u(4),u(5),u(6),u(7),u(
 user.registerTempTable("user")
 
 val userprofile = sqlContext.sql("Select id,displayname,downvotes,reputation,upvotes from user")
-//userprofile.rdd.saveToCassandra("stackoverflow","userprofile",SomeColumns("id","displayname","reputation","upvotes","downvotes"))
 userprofile.write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "userprofile", "keyspace" -> "stackoverflow")).mode(SaveMode.Append).save()
-*/
+
 
 val removevotesextralines = sc.textFile("hdfs://ec2-52-24-206-90.us-west-2.compute.amazonaws.com:9000/input/votesfileextra.txt")
 val votesfilebeforeremovinglines = sc.textFile("hdfs://ec2-52-24-206-90.us-west-2.compute.amazonaws.com:9000/input/Votes.xml")
