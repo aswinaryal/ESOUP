@@ -1,28 +1,37 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>User Dashboard</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login Page</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
   <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="../static/css/style.css">
 </head>
-<body>
 
-<nav class="navbar navbar-inverse">
-  <div class="container-fluid">
+<body id="myPage" data-spy="scroll"  data-offset="30">
+<nav class="navbar navbar-fixed-top navbar-custom" role="navigation">
+  <div class="container header">
     <div class="navbar-header">
-      <a class="navbar-brand" href="#">Stack Overflow</a>
+<a class="navbar-brand" href="#"><h1>Stack Overflow</h1></a>
     </div>
-</div>
+  </div>
 </nav>
-   
-      <form action = "http://ec2-52-43-50-72.us-west-2.compute.amazonaws.com/dashboard" method = "POST">
+<br><br>
+<br>
+<br>
+<br>
+
+<div class="login">   
+      <form action = "/dashboard" method = "POST">
          <p>User Id <input type = "text" name = "userid" /></p>
          <p><input type = "submit" value = "submit" /></p>
       </form>
-      
+      </div>
    </body>
 </html>
+

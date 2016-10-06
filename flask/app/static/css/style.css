@@ -1,0 +1,19 @@
+body{
+background-color: white;
+font-size:24px;
+}
+
+.navbar{
+min-height:90px;
+background-color:black;
+font-size:36px;
+}
+
+.navbar-brand, .navbar-header{
+font-size:36px;
+font-weight: 700;
+}
+.login{
+text-align:center;
+padding: 200px 0px;
+}

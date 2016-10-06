@@ -8,8 +8,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
   <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="http://code.highcharts.com/highcharts.js"></script>
   <link rel="stylesheet" type="text/css" href="../static/css/style.css">
 </head>
 
@@ -18,56 +19,96 @@
   <div class="container header">
     <div class="navbar-header">
       <a class="navbar-brand" href="#"><h1>Stack Overflow</h1></a>
-</div>
-</div>
+   </div>
+  </div>
 </nav>
-<br><br>
-<br>
-<br>
-<br>
-<div class="username">
-  {% for val in user %}
-<h2>Hello, {{val.DisplayName}} !! </h2>
-
+<br><br><br>
+<div class="username" id="username">
+{% for r in json_response[0]%}
+<h1>&nbsp;&nbsp;  {{r.id}}</h1>
+{% endfor %}
+  {% for val in json_response[0] %}
+<h2>  Hello, {{val.displayname}} </h2>
 </div>
-   <br>
-<br>
 <div class="row">
 <div class="col-sm-2 col-md-2 col-lg-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-<a href="#"><h3>UpVotes </h3><span class="badge">{{val.UpVotes}}</span></a><br>
-<a href="#"><h3>DownVotes </h3><span class="badge">{{val.DownVotes}}</span></a>
+<a href="#"><h3>UpVotes </h3><span class="badge badge-info upvotes">{{val.upvotes}}</span></a><br>
+<a href="#"><h3>DownVotes </h3><span class="badge badge-info downvotes">{{val.downvotes}}</span></a>
 </div>
 <div class="col-sm-2 col-md-2 col-lg-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-<a href="#"><h3>Reputation </h3><span class="badge">{{val.Reputation}}</span></a><br>
-<a href="#"><h3>Favorite Votes </h3><span class="badge">12</span></a>
+<a href="#"><h3>Reputation </h3><span class="badge badge-info reputation">{{val.reputation}}</span></a><br>
+<a href="#"><h3>Favorite Votes </h3><span class="badge badge-info votes">12</span></a>
 {% endfor %}
 </div>
-<div class="col-sm-4 col-md-4 col-lg-4 col-sm-offset-2 col-md-offset-2 col-lg-offset-2">
+<div class="toptags col-sm-4 col-md-4 col-lg-4 col-sm-offset-2 col-md-offset-2 col-lg-offset-2">
 <h3><b>Top Tags</b></h3>
-{% for num in toptags %}
-      {% for x in num %}
-<li><h4>{{x}}</h4></li>
-{% endfor %}
-</li>
+{% for num in json_response[1] %}
+<li><h4>{{num}}</h4></li>
    {% endfor %}
 </div>
 </div>
 <div class="row">
-<div class="col-md-6 col-md-offset-1 col-lg-6 col-md-offset-1">
+<div class="quest col-md-6 col-md-offset-1 col-lg-6 col-md-offset-1">
 <h3><b> Recommended Questions</b></h3>
-{% for q in questions %}
-{% for n in q %}
-<li><h4>{{n}}<h4></li>
-{% endfor %}
+{% for q in json_response[2][0:10] %}
+<li><h4>{{q}}<h4></li>
 {% endfor %}
 </div>
-<div class = "col-md-4 col-md-offset-1 col-lg-4 col-lg-offset-1">
+<div class = "trendtag col-md-4 col-md-offset-1 col-lg-4 col-lg-offset-1">
 <h3><b>Trending Tags</b></h3>
-{% for tag in trendingtags %}
-<li><h4>{{tag.tagname}}</h4></li>
+{% for tag in json_response[3] %}
+<li><h4>{{tag.tagname}}<span class="badge badge-info"> {{tag.count}}</span></h4></li>
 {% endfor %}
 </div>
+<div>
 </div>
-  </div>
-   </body>
+<div id="result" class="result"></div>
+<div class="visual"></div>
+<script type="text/javascript">
+var userid = {{json_response[0]|safe}};
+var user = new Array();
+for(i=0;i<userid.length;i++){
+user.push(userid[i].id)
+}
+id = user[0]
+function pageload()
+{
+$.ajax({
+type:'GET',
+url: 'http://esoup.tech/dashboard/'+id,
+data:{get_param: 'value'},
+success: function (data) {
+for( var i in data[0]){
+if(data[4][0]!=undefined && data[4][0]!=null  && data[4][0]!=' ' && data[4][0]!='null')
+{var upvotes = parseInt(data[0][i].upvotes)+parseInt(data[4][0].upvotes)}
+else
+ {var upvotes = parseInt(data[0][i].upvotes)}
+
+if(data[5][0]!=undefined && data[5][0]!=null  && data[5][0]!=' ' && data[5][0]!='null')
+{var downvotes = parseInt(data[0][i].downvotes)+parseInt(data[5][0].downvotes)}
+else
+{var downvotes = parseInt(data[0][i].downvotes)}
+$("div.username").html("<b>&nbsp;&nbsp; Hello,"+data[0][i].displayname+"</b>");
+$(".upvotes").html(upvotes);
+$(".downvotes").html(downvotes);
+$(".reputation").html(data[0][i].reputation);
+
+}
+$('.quest').html("<h3><b>Recommended Questions</b></h3>")
+for (var i in data[2]){
+$(".quest").append("<li><h4>"+data[2][i]+"</li</h4>")
+}
+$('.trendtag').html("<h3><b>Trending Tags</b></h3>")
+$('.count').html('')
+for( var i in data[3]){
+$(".trendtag").append("<li><h4>"+data[3][i].tagname+"<span class='badge badge-info'>"+ data[3][i].count+"</span></li></h4>")
+}
+}
+});
+}
+pageload();
+setInterval(function(){ pageload()},5000);
+ </script>
+</body>
 </html>
+
