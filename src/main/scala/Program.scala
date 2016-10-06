@@ -48,7 +48,7 @@ id}).map(_.split(",",-1)).map(n=>TagsFile(n(0),n(1),n(2).toInt,n(3),n(4))).toDF(
 
 tagsfile.registerTempTable("tags")
 
-val tag_count = sqlContext.sql("SELECT count,tagname from tags order by count desc limit 10")
+val tag_count = sqlContext.sql("SELECT CURRENT_TIMESTAMP as updatedon,count,tagname from tags order by count desc limit 10")
 
 tag_count.printSchema()
 tag_count.show()
@@ -66,7 +66,8 @@ id
 }).map(_.split(",",-1)).map(p=>Post(p(0),p(1),p(2),p(3),p(4),p(5),p(6),p(7),p(8),p(9),p(10),p(11),p(12),p(13),p(14),p(15),p(16),p(17))).toDF()
 
 post.registerTempTable("post")
-
+*/
+/**
 val toptags = sqlContext.sql("SELECT p.owneruserid,d.Tags from post p JOIN (SELECT * from post where AcceptedAnswerId is not null) d ON d.AcceptedAnswerId = p.id where p.CreationDate is not null and p.id is not null and p.owneruserid is not null  and months_between(current_timestamp(),p.CreationDate)<13 group by p.owneruserid,d.Tags,p.CreationDate").map(r=> {
 val domainparsed = r(1).toString().replace("""><""",",").replace("""<""","").replace(""">""","").split(",")
 Tag(r(0).toString(),domainparsed)})
@@ -117,7 +118,7 @@ val userprofile = sqlContext.sql("Select id,displayname,downvotes,reputation,upv
 //userprofile.rdd.saveToCassandra("stackoverflow","userprofile",SomeColumns("id","displayname","reputation","upvotes","downvotes"))
 userprofile.write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "userprofile", "keyspace" -> "stackoverflow")).mode(SaveMode.Append).save()
 */
-/**
+
 val removevotesextralines = sc.textFile("hdfs://ec2-52-24-206-90.us-west-2.compute.amazonaws.com:9000/input/votesfileextra.txt")
 val votesfilebeforeremovinglines = sc.textFile("hdfs://ec2-52-24-206-90.us-west-2.compute.amazonaws.com:9000/input/Votes.xml")
 val votesfileafterremovinglines = votesfilebeforeremovinglines.subtract(removevotesextralines)
@@ -128,9 +129,9 @@ val id = (elements \ "@Id").text +","+ (elements \ "@PostId").text +","+ (elemen
 id}).map(_.split(",",-1)).map(v=>Vote(v(0),v(1),v(2),v(3),v(4),v(5))).toDF()
 
 vote.registerTempTable("vote")
-*/
-//val favoritevotes = sqlContext.sql("SELECT owneruserid, p.id, Count(*) numberofusers from post p JOIN vote v on v.PostId = p.id where v.VoteTypeId='5' group by owneruserid,p.id") 
-//favoritevotes.write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "favoritevotes", "keyspace" -> "stackoverflow")).mode(SaveMode.Append).save()
+
+val favoritevotes = sqlContext.sql("SELECT owneruserid, Count(*) numberofusers from post p JOIN vote v on v.PostId = p.id where v.VoteTypeId='5' group by owneruserid") 
+favoritevotes.write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "favoritevotes", "keyspace" -> "stackoverflow")).mode(SaveMode.Append).save()
 
 //val unansweredquestionswithbounty = sqlContext.sql("Select count(*) from vote where VoteTypeId='8'")
 

@@ -1,4 +1,5 @@
 import org.apache.spark.streaming.kafka._
+import java.util.Calendar
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
 import org.apache.spark.{SparkConf,SparkContext}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
@@ -6,7 +7,7 @@ import kafka.serializer.StringDecoder
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{Row, SQLContext,SaveMode}
 import org.apache.spark.streaming.kafka.KafkaUtils
-import org.apache.spark.sql.functions.{rank,desc,explode,dense_rank}
+import org.apache.spark.sql.functions.{rank,desc,explode,dense_rank,current_date,current_timestamp}
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.{SomeColumns, _}
@@ -20,6 +21,8 @@ import com.datastax.spark.connector._
 
 case class RealTimePosts(tags:Seq[String],link:String,title:String,answered:Boolean)
 
+case class RealTimeVotes(id:String, downvotes:String,upvotes:String)
+
 case class Record(word:String)
 
 def main(args: Array[String]){
@@ -31,7 +34,7 @@ def main(args: Array[String]){
         .set("spark.cassandra.auth.password", "cassandra")
 
         val sc = new SparkContext(conf)
-	val ssc = new StreamingContext(sc, Seconds(1))
+	val ssc = new StreamingContext(sc, Seconds(5))
 	val sqlContext = new SQLContext(sc)
         ssc.checkpoint("checkpoint") 
 	import sqlContext.implicits._
@@ -45,67 +48,89 @@ def main(args: Array[String]){
 sqlContext.jsonRDD(rdd).registerTempTable("realtimeposts")
       
 if (rdd.toLocalIterator.nonEmpty) {
-//        sqlContext.jsonRDD(rdd).registerTempTable("realtimeposts")
 val tagsofquestion = sqlContext.sql("Select tags,link,title,is_answered from realtimeposts")
-tagsofquestion.show()
-tagsofquestion.printSchema()
+tagsofquestion.map(RealTimePosts(_)).saveToCassandra("stackoverflow","realtimeposts", SomeColumns("tags","link","title","answered"))
 val tagquestion = tagsofquestion.select("title","tags","is_answered").withColumn("tag",explode($"tags"))
 tagquestion.registerTempTable("tagquestion")
-tagquestion.show()
+
 val tags = sqlContext.sql("select tags from realtimeposts where is_answered!=true").withColumn("tag",explode($"tags")).select("tag")
 val tagcount = tags.map(x=>(x(0).toString,1)).reduceByKey(_+_).toDF()
-tagcount.show()
+
 val newtagcount =tagcount.select($"_1".alias("tagname"),$"_2".alias("count"))
-newtagcount.show()
+
 val trendingtagsfromdb = sqlContext.read.format("org.apache.spark.sql.cassandra").options(Map("table" -> "trendingtags", "keyspace" -> "stackoverflow")).load
 trendingtagsfromdb.show()
-val sortresult = trendingtagsfromdb.unionAll(newtagcount).map(x=>(x.getString(0),x.getInt(1))).reduceByKey(_+_).sortBy(_._2,false).take(10)
-val arraytordd = ssc.sparkContext.parallelize(sortresult).toDF()
-arraytordd.select($"_1".alias("tagname"),$"_2".alias("count")).write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "trendingtags", "keyspace" -> "stackoverflow")).mode(SaveMode.Overwrite).save()
-
-
-//.saveToCassandra("stackoverflow","trendingtags")
-//takeOrdered(10)(Ordering[Int].reverse.on(y=>y._2))
-//val yz = ssc.parallelize(xyz)
-//yz.saveToCassandra("stackoverflow","trendingtags")
-
-//trendingtagsfromdb.unionAll(newtagcount).map(x=>(x.getString(0),x.getInt(1))).reduceByKey(_+_).saveToCassandra("stackoverflow","trendingtags")
-tagsofquestion.map(RealTimePosts(_)).saveToCassandra("stackoverflow","realtimeposts", SomeColumns("tags","link","title","answered"))
-//x.toDF().write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "realtimeposts", "keyspace" -> "stackoverflow")).mode(SaveMode.Append).save()
+val deldate = trendingtagsfromdb.select(trendingtagsfromdb("tagname"),trendingtagsfromdb("count"))
+deldate.show()
+val sortresult = deldate.unionAll(newtagcount).map(x=>(x.getString(0),x.getInt(1))).reduceByKey(_+_).toDF()
+sortresult.show()
+val trending = sortresult.select($"_1".alias("tagname"),$"_2".alias("count")).withColumn("updatedon",current_timestamp())
+trending.show()
+trending.write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "trendingtags", "keyspace" -> "stackoverflow")).mode(SaveMode.Overwrite).save()
 
 val df = sqlContext.read.format("org.apache.spark.sql.cassandra").options(Map("table" -> "tagtousers", "keyspace" -> "stackoverflow")).load
-df.show(20)
+
 val tagtosingleuser = df.withColumn("user",explode($"users"))
 tagtosingleuser.registerTempTable("tagtousers")
 
 val fin = sqlContext.sql("select user,title from tagquestion r Join tagtousers t on r.tag = t.tag where is_answered!=true")
-fin.show()
+
 val finremove = sqlContext.sql("select user,title from tagquestion r Join tagtousers t on r.tag = t.tag where is_answered =true")
-finremove.show()
+
 fin.map(x=>(x(0).toString,Set(x(1).toString))).reduceByKey(_ ++ _).saveToCassandra("stackoverflow","usertoquestion",SomeColumns("userid","questions" append)) 
 finremove.map(x=>(x(0).toString,Set(x(1).toString))).reduceByKey(_ ++ _).saveToCassandra("stackoverflow","usertoquestion",SomeColumns("userid","questions" remove))
-//val temp = rdd.map(_.split(" ",-1)).map(n=>RealTimePosts(n(0),n(1))).toDF()
 //temp.registerTempTable("posts")
 //val postsdf = sqlContext.sql( "SELECT * FROM posts").write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "realtimeposts", "keyspace" -> "stackoverflow")).mode(SaveMode.Append).save()
 }
 }
-/**
-val  topics= List("votes").toSet
-val directKafkaStream = KafkaUtils.createDirectStream[String,String,StringDecoder,StringDecoder](ssc,kafkabrokers,topics).map(_._2)
 
-        directKafkaStream.print()
-        directKafkaStream.foreachRDD{ rdd =>
-sqlContext.jsonRDD(rdd).registerTempTable("votes")
+val  topics1= List("votes").toSet
+val directKafkaStream1 = KafkaUtils.createDirectStream[String,String,StringDecoder,StringDecoder](ssc,kafkabrokers,topics1).map(_._2)
+
+        directKafkaStream1.print()
+        directKafkaStream1.foreachRDD{ rdd =>
+sqlContext.jsonRDD(rdd).registerTempTable("upvotes")
 
 if (rdd.toLocalIterator.nonEmpty) {
-val votes=sqlContext.sql("select UserId,VoteTypeId,Count(*) cnt from votes group by UserId,VoteTypeId order by VoteTypeId")
-votes.printSchema()
-votes.registerTempTable("votes")
-val df = sqlContext.read.format("org.apache.spark.sql.cassandra").options(Map("table" -> "userprofile", "keyspace" -> "stackoverflow")).load
-
-}
-}
+val upvotes=sqlContext.sql("select id,sum(upvotes) as upvotes from upvotes group by id")
+upvotes.show()
+val realtimeupvotesfromdb = sqlContext.read.format("org.apache.spark.sql.cassandra").options(Map("table" -> "realtimeupvotes", "keyspace" -> "stackoverflow")).load
+realtimeupvotesfromdb.show()
+import org.apache.spark.sql._
+val unionupvotes = upvotes.unionAll(realtimeupvotesfromdb).map(x=>(x(0).toString,x.getAs[Long](1))).reduceByKey(_ + _)
+unionupvotes.toDF("id","upvotes").show()
+/**
+val updatevotes = unionvotes.map(v=>{
+val split = v(1).toString().split(",")
+val downvotes = split(0)
+val upvotes = v(1).split(",")(1)
+RealTimeVotes(v(0).toString(),downvotes,upvotes)
+})
 */
+//updatesvotes.toDF("id","downvotes","upvotes").show()
+unionupvotes.saveToCassandra("stackoverflow","realtimeupvotes",SomeColumns("id","upvotes"))
+//votes.write.format("org.apache.spark.sql.cassandra").options(Map("table" -> "realtimevotes", "keyspace" -> "stackoverflow")).mode(SaveMode.Overwrite).save()
+}
+}
+
+val  topics2= List("downvotes").toSet
+val directKafkaStream2 = KafkaUtils.createDirectStream[String,String,StringDecoder,StringDecoder](ssc,kafkabrokers,topics2).map(_._2)
+
+        directKafkaStream2.print()
+        directKafkaStream2.foreachRDD{ rdd =>
+sqlContext.jsonRDD(rdd).registerTempTable("downvotes")
+
+if (rdd.toLocalIterator.nonEmpty) {
+val downvotes=sqlContext.sql("select id,sum(downvotes) as downvotes from downvotes group by id")
+downvotes.show()
+val realtimedownvotesfromdb = sqlContext.read.format("org.apache.spark.sql.cassandra").options(Map("table" -> "realtimedownvotes", "keyspace" -> "stackoverflow")).load
+realtimedownvotesfromdb.show()
+import org.apache.spark.sql._
+val uniondownvotes = downvotes.unionAll(realtimedownvotesfromdb).map(x=>(x(0).toString,x.getAs[Long](1))).reduceByKey(_ + _)
+uniondownvotes.toDF("id","downvotes").show()
+uniondownvotes.saveToCassandra("stackoverflow","realtimedownvotes",SomeColumns("id","downvotes"))
+}
+}
       ssc.start()
       ssc.awaitTermination()
    }
