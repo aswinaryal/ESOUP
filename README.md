@@ -2,7 +2,7 @@
 
 ## Table of contents
 1. [Introduction](README.md#introduction)
-2. [Data Source](README.md# datasource)
+2. [Data Source](README.md# data-source)
 3. [AWS Clusters](README.md#aws-clusters)
 4. [Data Pipeline](README.md#data-pipeline)
 5. [How It Works](README.md#how-it-works)
@@ -29,7 +29,7 @@ Complete Application data is spread across multiple file types:
 <li>Votes.xml</li>
 </ul>
 
-## AWS Cluster
+## AWS Clusters
 ESOUP runs on 4 clusters on AWS:
 <ul>
 	<li>4 large nodes for Spark/Spark Streaming</li>
