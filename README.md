@@ -16,8 +16,11 @@ occupied whenever he visits the application and motivates him to visit applicati
 
 ## Data Source
 link - https://archive.org/details/stackexchange
+
 Data Format - xml
+
 Size - 200 GB approx
+
 
 Complete Application data is spread across multiple file types:
 <ul>
@@ -42,15 +45,15 @@ Since, data is in xml format with self closing tags, it is parsed in to csv form
 There are 2 major flows in the application:
 <ul>
    <li>
-   <h3>Batch Processing</h3> - Historical dataset from stack overflow is stored in Hadoop File System(HDFS). Spark reads files from
+   <h3>Batch Processing</h3>Historical dataset from stack overflow is stored in Hadoop File System(HDFS). Spark reads files from
     HDFS and calculates top 3 tags for each user if exists. How I defined top tag? a tag with at least 10 accepted answers in 
-    last 1year will make it a top tag for that user. If there are more than 3 tags which matches top tag definition, I take   only top 3 based on accepted answers count. Not all users will have top tags, so questions are recommended to users who only has top tags.  After calculating, top tags for all the users results are stored in the cassandra database in the form of user to tags mapping, where tags is of collection type<li>
+    last 1year will make it a top tag for that user. If there are more than 3 tags which matches top tag definition, I take   only top 3 based on accepted answers count. Not all users will have top tags, so questions are recommended to users who only has top tags.  After calculating, top tags for all the users results are stored in the cassandra database in the form of user to tags mapping, where tags is of collection type</li>
     <li>
-    <h3>Real Time Processing</h3> - Two types of records that can enter in the application in real time: Post or Vote. Each of    these records is ingested through kafka to spark streaming, where spark streaming selects information it needs from the records. For post, it keeps post title and tags. Then, it gets user records from cassandra who have post tags as top tags. From user to tags mapping and title to tags mapping, User to title mapping is identified and these results are stored in cassandra.
+    <h3>Real Time Processing</h3> Two types of records that can enter in the application in real time: Post or Vote. Each of    these records is ingested through kafka to spark streaming, where spark streaming selects information it needs from the records. For post, it keeps post title and tags. Then, it gets user records from cassandra who have post tags as top tags. From user to tags mapping and title to tags mapping, User to title mapping is identified and these results are stored in cassandra.
     </li>
     </ul>
 whenever user enters the application by entering the userid, the application is redirected to user dashboard page which shows
 user performance number, favorite tags, trending tags in the application and recommended questions.
 
 ## Presentation
-[Presentation](http://bit.ly/esoup) and demo [Video](https://youtu.be/mzYfRnbpyuc) for ESOUP.
+[Presentation](http://bit.ly/esoup) and Demo [Video](https://youtu.be/mzYfRnbpyuc) for ESOUP.
