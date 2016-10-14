@@ -2,7 +2,7 @@
 
 ## Table of contents
 1. [Introduction](README.md#introduction)
-2. [Data Source](README.md# data-source)
+2. [Data Source](README.md#data-source)
 3. [AWS Clusters](README.md#aws-clusters)
 4. [Data Pipeline](README.md#data-pipeline)
 5. [How It Works](README.md#how-it-works)
@@ -20,7 +20,6 @@ link - https://archive.org/details/stackexchange
 Data Format - xml
 
 Size - 200 GB approx
-
 
 Complete Application data is spread across multiple file types:
 <ul>
