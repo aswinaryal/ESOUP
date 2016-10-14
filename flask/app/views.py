@@ -4,6 +4,10 @@ from flask import Flask, render_template, request
 from app import app
 from flask import jsonify
 from cassandra.cluster import Cluster
+import threading
+import sys
+sys.path.insert(0,'/home/ubuntu/kafka/')
+import producer
 
 cluster = Cluster(['ec2-52-39-76-176.us-west-2.compute.amazonaws.com'])
 session = cluster.connect('stackoverflow')
@@ -14,6 +18,7 @@ def user():
 
 @app.route('/dashboard',methods = ['POST', 'GET'])
 def result():
+   threading.Thread(target=producer.execute).start()
    if request.method == 'POST':
       userid = request.form['userid']
       output = execute(userid)
