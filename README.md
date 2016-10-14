@@ -3,14 +3,22 @@ Project aims to provide questions recommendations to stack overflow users. It al
 current/recent trends of the Stack overflow website and some insights into user activity.
 
 
-ESOUP - Extending Stack Overflow User Profile
-Introduction
+# [ESOUP](http://esoup.tech) - Extending Stack Overflow User Profile
+## Table of contents
+1. [Introduction](README.md#introduction)
+2. [Data Source](README.md# datasource)
+3. [AWS Clusters](README.md#aws-clusters)
+4. [Data Pipeline](README.md#data-pipeline)
+5. [How It Works](README.md#how-it-works)
+
+
+## Introduction
 The project aims to recommends questions to users who has expertise in tags provided to question. The application also shows
 how user performance numbers like Upvotes, Downvotes are changing in real time and current trending tags in the stack overflow 
 along with their counts getting updated in real time. All this information in showed in user dashboard, which keeps user
 occupied whenever he visits the application and motivates him to visit application frequently.
 
-Data Source
+## Data Source
 https://archive.org/details/stackexchange
 
 Complete Application data is spread across multiple file types:
@@ -18,22 +26,22 @@ Complete Application data is spread across multiple file types:
 2. Posts.xml,
 3. Votes.xml
 
-AWS Cluster
+## AWS Cluster
 ESOUP runs on 4 clusters on AWS:
 	1. 4 large nodes for Spark/Spark Streaming,
 	2. 4 large nodes for Cassandra,
 	3. 3 large nodes for kafka and Flask/Tornado
 
-Data Pipeline
-![alt tag](https://github.com/pramodgudipati/ESOUP/tree/master/images/pipeline.png)
+## Data Pipeline
+![alt text](images/pipeline.png?raw=true "Pipeline")
 
-How It Works:
+## How It Works
 Since, data is in xml format with self closing tags, it is parsed in to csv format using scala XML library in distributed mode.
 
 There are 2 major flows in the application:
     1. Batch Processing - Historical dataset from stack overflow is stored in Hadoop File System(HDFS). Spark reads files from
     HDFS and calculates top 3 tags for each user if exists. How I defined top tag? a tag with at least 10 accepted answers in 
-    last 1year will make it a top tag for that user. If there are more than 3 tags which matches top tag definition, I take only
+    last 1year will make it a top tag for that user. If there are more than 3 tags which matches top tag definition, I take   only
     top 3 based on accepted answers count. Not all users will have top tags, so questions are recommended to users who only has 
     top tags.  After calculating, top tags for all the users results are stored in the cassandra database in the form of user to
     tags mapping, where tags is of collection type,
