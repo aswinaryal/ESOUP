@@ -1,4 +1,5 @@
-# [ESOUP](http://esoup.tech) - Extending Stack Overflow User Profile
+# [ESOUP](http://esoup.tech): An Insight Data Science Project
+*Extending Stack Overflow User Profile*
 
 ## Table of Contents
 1. [Introduction](README.md#introduction)
@@ -11,17 +12,14 @@
 ## Introduction
 [Back to Table of Contents](README.md#table-of-contents)
 
-The project aims to recommends questions to users who has expertise in tags provided to question. The application also shows
-how user performance numbers like Upvotes, Downvotes are changing in real time and current trending tags in the stack overflow 
-along with their counts getting updated in real time. All this information in showed in user dashboard, which keeps user
-occupied whenever he visits the application and motivates him to visit application frequently.
+The project aims to recommend newly posted questions in the application to the users who has expertise in the related domain of the question. The application also displays how user performance numbers like Upvotes, Downvotes are changing in real time and current trending tags in the application along with their counts getting updated in real time. A Dashboard is built to display all of this information.
 
 ## Data Source
 [Back to Table of Contents](README.md#table-of-contents)
 
 link - https://archive.org/details/stackexchange
 
-Data Format - xml
+Data Format - XML
 
 Size - 200 GB approx
 
@@ -55,15 +53,14 @@ Input data is in xml format with self closing tags, it is parsed in to csv forma
 There are 2 major flows in the application:
 <ul>
    <li>
-   <h3>Batch Processing</h3>Historical dataset from stack overflow is stored in Hadoop File System(HDFS). Spark reads files from
-    HDFS and calculates top 3 tags for each user if exists. How I defined top tag? a tag with at least 10 accepted answers in 
-    last 1year will make it a top tag for that user. If there are more than 3 tags which matches top tag definition, I take   only top 3 based on accepted answers count. Not all users will have top tags, so questions are recommended to users who only has top tags.  After calculating, top tags for all the users results are stored in the cassandra database in the form of user to tags mapping, where tags is of collection type</li>
+   <h3>Batch Processing</h3>Historical dataset from stack overflow is stored in Hadoop File System(HDFS). Spark reads files from HDFS and calculates top 3 tags for each user if exists. How I defined top tag? a tag with at least 10 accepted answers in 
+last 1 year will make it a top tag for that user. If there are more than 3 tags which satisfies top tag definition, I take   only top 3 based on accepted answers count. Not all users will have top tags, so questions are recommended to users who only has top tags.  After processing historical data, top tags of the users are stored in the cassandra database in the form of user to tags mapping, where tags is of collection type</li>
     <li>
-    <h3>Real Time Processing</h3> Two types of records that can enter in the application in real time: Post or Vote. Each of    these records is ingested through kafka to spark streaming, where spark streaming selects information it needs from the records. For post, it keeps post title and tags. Then, it gets user records from cassandra who have post tags as top tags. From user to tags mapping and title to tags mapping, User to title mapping is identified and these results are stored in cassandra.
+    <h3>Real Time Processing</h3> Two types of records that can enter in the application in real time: Post or Vote. Each of    these records is ingested to different kafka topics, from which spark streaming reads records. Spark Streaming selects information that it needs from the input records. For post, it keeps post title and tags. Then, it gets user records from cassandra who have post tags as top tags. From user to tags mapping and title to tags mapping, User to title mapping is calculated and then results are stored in cassandra in the form user to questions mapping, where questions is a collection type.
     </li>
     </ul>
-whenever user enters the application by entering the userid, the application is redirected to user dashboard page which shows
-user performance number, favorite tags, trending tags in the application and recommended questions.
+whenever user visits the ESOUP application and submits the userid, home page is redirected to user dashboard page which shows
+user performance numbers, favorite tags, trending tags in the application and recommended questions.
 
 ## Presentation
 [Back to Table of Contents](README.md#table-of-contents)
