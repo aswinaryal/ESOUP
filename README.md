@@ -1,6 +1,6 @@
 # [ESOUP](http://esoup.tech) - Extending Stack Overflow User Profile
 
-## Table of contents
+## Table of Contents
 1. [Introduction](README.md#introduction)
 2. [Data Source](README.md#data-source)
 3. [AWS Clusters](README.md#aws-clusters)
@@ -17,7 +17,7 @@ along with their counts getting updated in real time. All this information in sh
 occupied whenever he visits the application and motivates him to visit application frequently.
 
 ## Data Source
-[Back to Table of contents](README.md#table-of-contents)
+[Back to Table of Contents](README.md#table-of-contents)
 
 link - https://archive.org/details/stackexchange
 
@@ -33,7 +33,7 @@ Complete Application data is spread across multiple file types:
 </ul>
 
 ## AWS Clusters
-[Back to Table of contents](README.md#table-of-contents)
+[Back to Table of Contents](README.md#table-of-contents)
 
 ESOUP runs on 4 clusters on AWS:
 <ul>
@@ -43,12 +43,12 @@ ESOUP runs on 4 clusters on AWS:
 </ul>
 
 ## Data Pipeline
-[Back to Table of contents](README.md#table-of-contents)
+[Back to Table of Contents](README.md#table-of-contents)
 
 ![alt text](images/pipeline.png?raw=true "Pipeline")
 
 ## How It Works
-[Back to Table of contents](README.md#table-of-contents)
+[Back to Table of Contents](README.md#table-of-contents)
 
 Input data is in xml format with self closing tags, it is parsed in to csv format using scala XML library in distributed mode.
 
@@ -66,6 +66,6 @@ whenever user enters the application by entering the userid, the application is 
 user performance number, favorite tags, trending tags in the application and recommended questions.
 
 ## Presentation
-[Back to Table of contents](README.md#table-of-contents)
+[Back to Table of Contents](README.md#table-of-contents)
 
 [Presentation](http://bit.ly/esoup) and Demo [Video](https://youtu.be/mzYfRnbpyuc) for ESOUP.
