@@ -9,12 +9,16 @@
 6. [Presentation](README.md#presentation)
 
 ## Introduction
+[Back to Table of Contents](README.md#table-of-contents)
+
 The project aims to recommends questions to users who has expertise in tags provided to question. The application also shows
 how user performance numbers like Upvotes, Downvotes are changing in real time and current trending tags in the stack overflow 
 along with their counts getting updated in real time. All this information in showed in user dashboard, which keeps user
 occupied whenever he visits the application and motivates him to visit application frequently.
 
 ## Data Source
+[Back to Table of contents](README.md#table-of-contents)
+
 link - https://archive.org/details/stackexchange
 
 Data Format - xml
@@ -29,17 +33,24 @@ Complete Application data is spread across multiple file types:
 </ul>
 
 ## AWS Clusters
+[Back to Table of contents](README.md#table-of-contents)
+
 ESOUP runs on 4 clusters on AWS:
 <ul>
 	<li>4 large nodes for Spark/Spark Streaming</li>
 	<li>4 large nodes for Cassandra</li>
 	<li>3 large nodes for kafka and Flask/Tornado</li>
 </ul>
+
 ## Data Pipeline
+[Back to Table of contents](README.md#table-of-contents)
+
 ![alt text](images/pipeline.png?raw=true "Pipeline")
 
 ## How It Works
-Since, data is in xml format with self closing tags, it is parsed in to csv format using scala XML library in distributed mode.
+[Back to Table of contents](README.md#table-of-contents)
+
+Input data is in xml format with self closing tags, it is parsed in to csv format using scala XML library in distributed mode.
 
 There are 2 major flows in the application:
 <ul>
@@ -55,4 +66,6 @@ whenever user enters the application by entering the userid, the application is 
 user performance number, favorite tags, trending tags in the application and recommended questions.
 
 ## Presentation
+[Back to Table of contents](README.md#table-of-contents)
+
 [Presentation](http://bit.ly/esoup) and Demo [Video](https://youtu.be/mzYfRnbpyuc) for ESOUP.
