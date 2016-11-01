@@ -15,6 +15,9 @@ margin-left:-55px;
 input[type=submit] {
 color:black;
 }
+input[type=text] {
+color:black;
+}
 .navbar-brand, .navbar-header{
 font-size:32px;
 color:white;

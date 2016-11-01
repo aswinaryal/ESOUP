@@ -1,27 +1,48 @@
 body{
 font-size:24px;
-background-image: url('home.jpg');
+/* background-image: url('home.jpg'); */
+}
+
+th{
+text-align:center;
 }
 
 .navbar{
-min-height:75px;
 font-size:32px;
 padding-top:10px;
 font-color:black;
+background-color:steelblue;
+}
+.panel > b{
+font-size:28px;
 }
 
+.toptags
+{
+margin-left: 50px;
+padding:21px;
+}
+
+.toptags > h4{
+line-height:1.4;
+}
+.trendtag{
+margin-left:40px;
+}
 table{
 font-size:20px;
 }
 .username {
-color: white;
-font-size: 28px;     
-font-weight: bold;
+color: #b32b22;
+font-size: 28px;
+padding-left:15px;
+padding-top:10px;     
+font-weight: 500;
 }
 .navbar-brand, .navbar-header{
 font-size:32px;
 font-weight: 700;
-color:white;
+color:whitesmoke;
 }
 table{
 font-size:18px;
@@ -29,7 +50,46 @@ font-size:18px;
 .navbar > .container, .navbar-brand{
 margin-left:15px;
 }
+.col-lg-3, .col-md-3{
+text-align:center;
+width:20%;
+}
+
 .login{
 text-align:center;
 padding: 200px 0px;
+}
+
+.panel-upvotes{
+color: #5cb85c;
+border-color:#5cb85c;
+border-width:thick;
+}
+.panel-upvotes > .panel-heading {
+  border-color: #5cb85c;
+  color: white;
+  background-color: #5cb85c;
+}
+
+.panel-downvotes{
+color:#d9534f;
+border-color:#d9534f;
+border-width:thick;
+}
+
+.panel-downvotes > .panel-heading {
+  border-color: #d9534f;
+  color: white;
+  background-color: #d9534f;
+}
+.panel-reputation{
+color:#6495ED;
+border-color:#6495ED;
+border-width:thick;
+}
+
+.panel-reputation > .panel-heading {
+  border-color: #6495ED;
+  color: white;
+  background-color: #6495ED;
 }

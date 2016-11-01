@@ -11,7 +11,8 @@
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
   <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
   <script src="http://code.highcharts.com/highcharts.js"></script>
-  <link rel="stylesheet" type="text/css" href="../static/css/style.css">
+ <link href="../static/css/font-awesome/css/font-awesome.min.css " rel="stylesheet" type="text/css">
+ <link rel="stylesheet" type="text/css" href="../static/css/style.css">
 </head>
 
 <body id="myPage" data-spy="scroll"  data-offset="30">
@@ -22,61 +23,53 @@
    </div>
   </div>
 </nav>
-<br><br><br>
+<br>
+<br>
 <div class="username" id="username">
   {% for val in json_response[0] %}
 &nbsp;&nbsp;  Welcome, {{val.displayname}} 
 </div>
-<br><br>
+<br>
 <div class="row">
 <div class="col-sm-3 col-md-3 col-lg-3 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-<div class="panel panel-info">
+<div class="panel panel-upvotes">
 <div class="panel-heading">
 <span class="glyphicon glyphicon-thumbs-up glyphicon-thumbs-up-md" aria-hidden="true"></span><b> UpVotes</b>
 </div>
 <div class="panel-body upvotes"><b>{{val.upvotes}}</b></div>
 </div>
 </div>
-<div class="col-sm-3 col-md-3 col-lg-3 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-<div class="panel panel-info">
+<div class="col-sm-3 col-md-3 col-lg-3">
+<div class="panel panel-downvotes">
 <div class="panel-heading">
 <span class="glyphicon glyphicon-thumbs-down glyphicon-thumbs-down-md" aria-hidden="true"></span><b> DownVotes</b>
 </div>
 <div class="panel-body downvotes"><b>{{val.downvotes}}</b></div>
 </div>
 </div>
-<div class="well toptags col-sm-2 col-md-2 col-lg-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-<b>Favorite Tags</b>
-{% for num in json_response[1] %}
-<li><h4>{{num}}</h4></li>
-   {% endfor %}
-</div>
-</div>
-<div class="row">
-<div class="col-sm-3 col-md-3 col-lg-3 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-<div class="panel panel-info">
+<div class="col-sm-3 col-md-3 col-lg-3">
+<div class="panel panel-reputation">
 <div class="panel-heading"><b>Reputation </b></div>
 <div class="panel-body reputation"><b>{{val.reputation}}</b></div>
 </div>
 </div>
-<div class="col-sm-3 col-md-3 col-lg-3 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-<div class="panel panel-info">
-<div class="panel-heading"><b>Favorite Votes</b></div>
-<div class="panel-body votes"><b>12</b></div>
-</div>
-</div>
 {% endfor %}
+<div class="well toptags col-sm-2 col-md-2 col-lg-2">
+<b>Favorite Tags</b><br>
+{% for num in json_response[1] %}
+<h4><i class="fa fa-tag" aria-hidden="true"></i> {{num}}</h4>
+   {% endfor %}
 </div>
-
-<br><br>
+</div>
+<br>
 <div class="row">
-<div class="well quest col-md-6 col-md-offset-1 col-lg-6 col-md-offset-1">
+<div class="well quest col-md-7 col-lg-7 col-md-offset-1 col-lg-offset-1">
 <b> Recommended Questions</b>
 {% for q in json_response[2][0:10] %}
 <li><h4>{{q}}<h4></li>
 {% endfor %}
 </div>
-<div class = "well trendtag col-sm-3 col-md-3 col-lg-3 col-md-offset-1 col-lg-offset-1">
+<div class = "well trendtag col-sm-3 col-md-3 col-lg-3">
 <b>Trending Tags</b>
 <table class="table">
 <thead>
@@ -86,7 +79,6 @@
 {% endfor %}
 </tbody>
 </table>
-</div>
 </div>
 <div id="result" class="result"></div>
 <div class="visual"></div>

@@ -1,10 +1,12 @@
-*.txt
 *.class
 *.jar
 *.xml
 *.json
 *.csv
 *.log
+*.ctrl
+*.dat
+*.pem
 metastore_db/*
 project/*
 stackoverflow.com-Posts.7z
